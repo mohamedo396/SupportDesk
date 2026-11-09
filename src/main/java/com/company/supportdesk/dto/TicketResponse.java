@@ -15,6 +15,8 @@ public record TicketResponse(
     String customerEmail,
     TicketPriority priority,
     TicketStatus status,
-    Instant createdAt
+    Instant createdAt,
+    UUID assignedToUserId,
+    String assignedToName
 
 ) {}

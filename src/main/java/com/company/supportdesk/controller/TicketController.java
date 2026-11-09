@@ -1,5 +1,6 @@
 package com.company.supportdesk.controller;
 
+import com.company.supportdesk.dto.AssignTicketRequest;
 import com.company.supportdesk.dto.CreateTicketRequest;
 import com.company.supportdesk.dto.TicketResponse;
 import com.company.supportdesk.service.TicketService;
@@ -48,6 +49,24 @@ public class TicketController {
         return ResponseEntity.ok(ticket);
 
     }
+
+    //assign ticket to engineer
+
+    @PatchMapping("/{id}/assignee")
+    public ResponseEntity<TicketResponse> assignTicket(
+            @PathVariable UUID id,
+            @Valid @RequestBody AssignTicketRequest request
+    ) {
+
+        TicketResponse response = ticketService.assignTicket(
+                id,
+                request.assigneeId()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+
     
     
 }

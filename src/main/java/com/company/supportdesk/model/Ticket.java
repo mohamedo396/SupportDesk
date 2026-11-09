@@ -11,6 +11,7 @@ public class Ticket{
     private final TicketPriority priority;
     private final TicketStatus status;
     private final Instant createdAt;
+    private final UUID assignedToUserId;
 
 
     public  Ticket(
@@ -20,7 +21,8 @@ public class Ticket{
         String customerEmail,
         TicketPriority priority,
         TicketStatus status,
-        Instant createdAt
+        Instant createdAt,
+        UUID assignedToUserId
 
     ){
         this.id=id;
@@ -30,6 +32,7 @@ public class Ticket{
         this.priority=priority;
         this.status=status;
         this.createdAt=createdAt;
+        this.assignedToUserId=assignedToUserId;
     }
 
 
@@ -59,6 +62,23 @@ public class Ticket{
 
     public Instant getCreatedAt(){
         return createdAt;
+    }
+
+    public UUID getAssignedToUserId(){
+        return assignedToUserId;
+    }
+
+    public Ticket withAssignee(UUID userId){
+        return new Ticket(
+            this.id,
+            this.title,
+            this.description,
+            this.customerEmail,
+            this.priority,
+            this.status,
+            this.createdAt,
+            userId
+        );
     }
 
 
