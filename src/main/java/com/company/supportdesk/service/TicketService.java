@@ -12,6 +12,10 @@ import com.company.supportdesk.model.UserRole;
 import com.company.supportdesk.repository.TicketRepository;
 import com.company.supportdesk.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import com.company.supportdesk.dto.CommentResponse;
+import com.company.supportdesk.dto.CreateCommentRequest;
+import com.company.supportdesk.model.TicketComment;
+import com.company.supportdesk.repository.TicketCommentRepository;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,13 +26,16 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final TicketCommentRepository ticketCommentRepository;
 
     public TicketService(
             TicketRepository ticketRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            TicketCommentRepository ticketCommentRepository
     ) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
+        this.ticketCommentRepository=ticketCommentRepository;
     }
 
     // CREATE TICKET
@@ -142,4 +149,81 @@ public class TicketService {
                 assignedToName
         );
     }
+
+    
+    // ADD A COMMENT TO A TICKET
+        public CommentResponse createComment(
+        UUID ticketId,
+        CreateCommentRequest request
+                        ) {
+
+    // STEP 1: Verify that the ticket exists
+
+    ticketRepository.findById(ticketId)
+            .orElseThrow(() -> new TicketNotFoundException(
+                    "Ticket not found with ID: " + ticketId
+            ));
+
+    // STEP 2: Verify that the author exists
+
+    User author = userRepository.findById(request.authorUserId())
+            .orElseThrow(() -> new UserNotFoundException(
+                    "User not found with ID: " + request.authorUserId()
+            ));
+
+    // STEP 3: Create the comment
+
+    TicketComment comment = new TicketComment(
+            UUID.randomUUID(),
+            ticketId,
+            author.getId(),
+            request.content(),
+            Instant.now()
+    );
+
+    // STEP 4: Save the comment
+
+            TicketComment savedComment =
+            ticketCommentRepository.save(comment);
+
+            // STEP 5: Return the response
+
+            return toCommentResponse(savedComment);
+        }
+
+      // GET ALL COMMENTS FOR A TICKET
+public List<CommentResponse> getComments(UUID ticketId) {
+
+    // STEP 1: Verify that the ticket exists
+
+    ticketRepository.findById(ticketId)
+            .orElseThrow(() -> new TicketNotFoundException(
+                    "Ticket not found with ID: " + ticketId
+            ));
+
+    // STEP 2: Retrieve comments belonging to this ticket
+
+    return ticketCommentRepository.findByTicketId(ticketId)
+            .stream()
+            .map(this::toCommentResponse)
+            .toList();
+}    
+        // CONVERT COMMENT INTO RESPONSE DTO
+private CommentResponse toCommentResponse(TicketComment comment) {
+
+    User author = userRepository.findById(comment.getAuthorUserId())
+            .orElseThrow(() -> new UserNotFoundException(
+                    "Comment author not found with ID: "
+                            + comment.getAuthorUserId()
+            ));
+
+    return new CommentResponse(
+            comment.getId(),
+            comment.getTicketId(),
+            comment.getAuthorUserId(),
+            author.getName(),
+            comment.getContent(),
+            comment.getCreatedAt()
+    );
+}
 }
